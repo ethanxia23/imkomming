@@ -33,11 +33,11 @@ export async function POST(req: NextRequest) {
       errorOutput += data.toString();
     });
 
-    return new Promise((resolve) => {
-      pythonProcess.on("close", (code) => {
+    return new Promise(async (resolve) => {
+      pythonProcess.on("close", async (code) => {
         if (code === 0) {
           // Try to read the generated JSON file
-          const fs = require("fs");
+          const fs = await import("fs");
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
           const jsonFile = `wahoo_data_${timestamp}.json`;
           

@@ -5,7 +5,7 @@ import { useState } from 'react';
 export default function HomePage() {
   const [accessToken, setAccessToken] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{data?: any; message?: string} | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleScrape = async () => {
@@ -145,7 +145,7 @@ export default function HomePage() {
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Connected Devices</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {result.data.devices.map((device: any, index: number) => (
+                  {result.data.devices.map((device: {name: string; type: string; model: string; battery_level: number; last_sync: string}, index: number) => (
                     <div key={index} className="border rounded-lg p-4">
                       <h3 className="font-semibold text-lg">{device.name}</h3>
                       <p className="text-gray-600">{device.type} - {device.model}</p>
@@ -174,7 +174,7 @@ export default function HomePage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Activities</h2>
               <div className="space-y-4">
-                {result.data.summary.recent_activities.slice(0, 5).map((activity: any, index: number) => (
+                {result.data.summary.recent_activities.slice(0, 5).map((activity: {name: string; sport: string; start_time: string; distance: number; duration: number; calories: number}, index: number) => (
                   <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
                     <div className="flex justify-between items-start">
                       <div>
