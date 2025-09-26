@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       errorOutput += data.toString();
     });
 
-    return new Promise(async (resolve) => {
+    return new Promise<NextResponse>(async (resolve) => {
       pythonProcess.on("close", async (code) => {
         if (code === 0) {
           // Try to read the generated JSON file
