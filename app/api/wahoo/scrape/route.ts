@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
               success: true, 
               message: "Scraping completed",
               output,
-              error: fileError.message 
+              error: fileError instanceof Error ? fileError.message : String(fileError)
             }));
           }
         } else {
