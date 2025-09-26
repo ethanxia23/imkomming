@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wahoo OAuth Callback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .code {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 18px;
+            word-break: break-all;
+            margin: 20px 0;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Wahoo OAuth Callback</h1>
+        
+        <div id="content">
+            <p>Processing your authorization...</p>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        const contentDiv = document.getElementById('content');
+
+        if (error) {
+            contentDiv.innerHTML = `
+                <div class="error">
+                    <h2>❌ Authorization Error</h2>
+                    <p><strong>Error:</strong> ${error}</p>
+                    <p><strong>Description:</strong> ${errorDescription || 'Unknown error'}</p>
+                </div>
+                <button class="button" onclick="window.close()">Close</button>
+            `;
+        } else if (code) {
+            contentDiv.innerHTML = `
+                <div class="success">
+                    <h2>✅ Authorization Successful!</h2>
+                    <p>Your authorization code is:</p>
+                    <div class="code">${code}</div>
+                    <p>Copy this code and use it to get your access token.</p>
+                </div>
+                <button class="button" onclick="copyCode()">Copy Code</button>
+                <button class="button" onclick="window.close()">Close</button>
+            `;
+        } else {
+            contentDiv.innerHTML = `
+                <div class="error">
+                    <h2>❌ No Authorization Code</h2>
+                    <p>No authorization code found in the URL.</p>
+                    <p>Make sure you're being redirected from the Wahoo OAuth flow.</p>
+                </div>
+                <button class="button" onclick="window.close()">Close</button>
+            `;
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Authorization code copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Authorization code copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+2025-09-25 11:19:44,803 - ERROR - API request failed: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:19:44,803 - ERROR - Response: {"error":"Invalid access token"}
+2025-09-25 11:19:44,803 - ERROR - Error during data scraping: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:19:44,803 - ERROR - Scraping failed: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:19:46,857 - ERROR - API request failed: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:19:46,858 - ERROR - Response: {"error":"Invalid access token"}
+2025-09-25 11:19:46,858 - ERROR - Error during data scraping: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:19:46,858 - ERROR - Scraping failed: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:24:29,862 - ERROR - API request failed: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:24:29,863 - ERROR - Response: {"error":"Invalid access token"}
+2025-09-25 11:24:29,863 - ERROR - Error during data scraping: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
+2025-09-25 11:24:29,863 - ERROR - Scraping failed: 401 Client Error: Unauthorized for url: https://api.wahooligan.com/v1/user
