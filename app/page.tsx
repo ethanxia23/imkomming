@@ -77,17 +77,6 @@ export default function HomePage() {
     setProgress(10);
 
     try {
-      // Simulate progress updates
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev < 90) {
-            setScrapingStatus(`Scraping data... ${prev}%`);
-            return prev + Math.random() * 10;
-          }
-          return prev;
-        });
-      }, 500);
-
       setScrapingStatus('Connecting to Wahoo API...');
       setProgress(20);
 
@@ -102,8 +91,7 @@ export default function HomePage() {
         }),
       });
 
-      clearInterval(progressInterval);
-      setProgress(95);
+      setProgress(60);
       setScrapingStatus('Processing data...');
 
       const data = await response.json();
@@ -292,23 +280,42 @@ ${JSON.stringify(data, null, 2)}
 
         {result && result.data && (
           <div className="space-y-8">
+            {/* Debug Info */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+              <h3 className="font-semibold text-yellow-800 mb-2">Debug Info</h3>
+              <p className="text-sm text-yellow-700">
+                Data received: {result.data ? 'Yes' : 'No'} | 
+                Summary: {result.data.summary ? 'Yes' : 'No'} | 
+                Activities: {result.data.activities ? result.data.activities.length : 0} | 
+                User: {result.data.user ? 'Yes' : 'No'}
+              </p>
+            </div>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Activities</h3>
-                <p className="text-3xl font-bold text-blue-600">{result.data.summary.total_activities}</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {result.data.summary?.total_activities || result.data.activities?.length || 0}
+                </p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Distance</h3>
-                <p className="text-3xl font-bold text-green-600">{result.data.summary.total_distance_km} km</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {result.data.summary?.total_distance_km || 0} km
+                </p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Total Calories</h3>
-                <p className="text-3xl font-bold text-orange-600">{result.data.summary.total_calories.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {result.data.summary?.total_calories?.toLocaleString() || 0}
+                </p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Avg Heart Rate</h3>
-                <p className="text-3xl font-bold text-red-600">{result.data.summary.avg_heart_rate} bpm</p>
+                <p className="text-3xl font-bold text-red-600">
+                  {result.data.summary?.avg_heart_rate || 0} bpm
+                </p>
               </div>
             </div>
 
@@ -424,6 +431,16 @@ ${JSON.stringify(data, null, 2)}
         {result && !result.data && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
             <p className="text-yellow-800">{result.message}</p>
+          </div>
+        )}
+
+        {/* Raw Data Display - Fallback */}
+        {result && (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Raw Response Data</h3>
+            <pre className="text-xs text-gray-600 overflow-auto max-h-64">
+              {JSON.stringify(result, null, 2)}
+            </pre>
           </div>
         )}
       </div>
