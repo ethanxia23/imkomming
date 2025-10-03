@@ -1,22 +1,74 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function HomePage() {
   const [accessToken, setAccessToken] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = useState<{data?: any; message?: string} | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Check for token or error in URL parameters (from OAuth callback)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const error = urlParams.get('error');
+    const details = urlParams.get('details');
+    
+    if (token) {
+      setAccessToken(token);
+      setError(null);
+      setSuccess('✅ Successfully authorized with Wahoo! You can now run the scraper.');
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (error === 'oauth_failed') {
+      const errorMessage = details ? 
+        `OAuth authorization failed: ${decodeURIComponent(details)}` : 
+        'OAuth authorization failed. Please try again or enter your token manually.';
+      setError(errorMessage);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  const handleOAuth = () => {
+    setAuthLoading(true);
+    setError(null);
+    setSuccess(null);
+    
+    // Generate OAuth URL
+    const clientId = process.env.NEXT_PUBLIC_WAHOO_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/api/wahoo_callback`;
+    
+    if (!clientId) {
+      setError('OAuth not configured. Please set NEXT_PUBLIC_WAHOO_CLIENT_ID in your environment variables or enter your access token manually.');
+      setAuthLoading(false);
+      return;
+    }
+    
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      scope: 'user_read'
+    });
+    
+    const authUrl = `https://api.wahooligan.com/oauth/authorize?${params.toString()}`;
+    window.location.href = authUrl;
+  };
 
   const handleScrape = async () => {
     if (!accessToken.trim()) {
-      setError('Please enter an access token');
+      setError('Please enter an access token or authorize with Wahoo');
       return;
     }
 
     setLoading(true);
     setError(null);
+    setSuccess(null);
     setResult(null);
 
     try {
@@ -64,33 +116,59 @@ export default function HomePage() {
         </header>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label htmlFor="accessToken" className="block text-sm font-medium text-gray-700 mb-2">
-                Access Token
-              </label>
-              <input
-                id="accessToken"
-                type="password"
-                value={accessToken}
-                onChange={(e) => setAccessToken(e.target.value)}
-                placeholder="Enter your Wahoo access token"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Get Started</h2>
+          
+          {/* OAuth Section */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-lg font-medium text-gray-800 mb-2">Option 1: Authorize with Wahoo</h3>
+            <p className="text-gray-600 mb-4">Click the button below to authorize and get your access token automatically.</p>
             <button
-              onClick={handleScrape}
-              disabled={loading}
+              onClick={handleOAuth}
+              disabled={authLoading}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Scraping...' : 'Run Scraper'}
+              {authLoading ? 'Redirecting...' : '🔐 Authorize with Wahoo'}
             </button>
+          </div>
+
+          {/* Manual Token Section */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-medium text-gray-800 mb-2">Option 2: Enter Token Manually</h3>
+            <p className="text-gray-600 mb-4">If you already have an access token, enter it below.</p>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label htmlFor="accessToken" className="block text-sm font-medium text-gray-700 mb-2">
+                  Access Token
+                </label>
+                <input
+                  id="accessToken"
+                  type="password"
+                  value={accessToken}
+                  onChange={(e) => setAccessToken(e.target.value)}
+                  placeholder="Enter your Wahoo access token"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <button
+                onClick={handleScrape}
+                disabled={loading || !accessToken.trim()}
+                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Scraping...' : 'Run Scraper'}
+              </button>
+            </div>
           </div>
         </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-8">
             <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-8">
+            <p className="text-green-800">{success}</p>
           </div>
         )}
 
