@@ -116,6 +116,9 @@ export default function HomePage() {
       setScrapingStatus('Complete!');
       setResult(data);
       
+      // Save data to localStorage for charts
+      localStorage.setItem('wahooData', JSON.stringify(data));
+      
       // Clear status after 2 seconds
       setTimeout(() => {
         setScrapingStatus('');
@@ -203,6 +206,14 @@ ${JSON.stringify(data, null, 2)}
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Wahoo Data Scraper</h1>
           <p className="text-gray-600">Python-powered fitness data extraction</p>
+          <div className="mt-4">
+            <a 
+              href="/charts" 
+              className="inline-block px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            >
+              📊 View Charts
+            </a>
+          </div>
         </header>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
