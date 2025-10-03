@@ -10,6 +10,8 @@ export default function HomePage() {
   const [result, setResult] = useState<{data?: any; message?: string} | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [scrapingStatus, setScrapingStatus] = useState<string>('');
+  const [progress, setProgress] = useState<number>(0);
 
   // Check for token or error in URL parameters (from OAuth callback)
   useEffect(() => {
@@ -63,7 +65,7 @@ export default function HomePage() {
 
   const handleScrape = async () => {
     if (!accessToken.trim()) {
-      setError('Please enter an access token or authorize with Wahoo');
+      setError('Please enter an access token or click "Authorize with Wahoo" to get one automatically');
       return;
     }
 
@@ -71,8 +73,24 @@ export default function HomePage() {
     setError(null);
     setSuccess(null);
     setResult(null);
+    setScrapingStatus('Initializing scraper...');
+    setProgress(10);
 
     try {
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev < 90) {
+            setScrapingStatus(`Scraping data... ${prev}%`);
+            return prev + Math.random() * 10;
+          }
+          return prev;
+        });
+      }, 500);
+
+      setScrapingStatus('Connecting to Wahoo API...');
+      setProgress(20);
+
       const response = await fetch('/api/wahoo/scrape', {
         method: 'POST',
         headers: {
@@ -84,15 +102,30 @@ export default function HomePage() {
         }),
       });
 
+      clearInterval(progressInterval);
+      setProgress(95);
+      setScrapingStatus('Processing data...');
+
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to scrape data');
       }
 
+      setProgress(100);
+      setScrapingStatus('Complete!');
       setResult(data);
+      
+      // Clear status after 2 seconds
+      setTimeout(() => {
+        setScrapingStatus('');
+        setProgress(0);
+      }, 2000);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setScrapingStatus('');
+      setProgress(0);
     } finally {
       setLoading(false);
     }
@@ -152,7 +185,7 @@ export default function HomePage() {
               </div>
               <button
                 onClick={handleScrape}
-                disabled={loading || !accessToken.trim()}
+                disabled={loading}
                 className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Scraping...' : 'Run Scraper'}
@@ -170,6 +203,23 @@ export default function HomePage() {
         {success && (
           <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-8">
             <p className="text-green-800">{success}</p>
+          </div>
+        )}
+
+        {/* Progress Indicator */}
+        {loading && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-6 mb-8">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-blue-800">Scraping Progress</h3>
+              <span className="text-sm text-blue-600">{Math.round(progress)}%</span>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-3 mb-3">
+              <div 
+                className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <p className="text-blue-700 text-sm">{scrapingStatus}</p>
           </div>
         )}
 
