@@ -12,6 +12,7 @@ export default function HomePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [scrapingStatus, setScrapingStatus] = useState<string>('');
   const [progress, setProgress] = useState<number>(0);
+  const [scrapingOutput, setScrapingOutput] = useState<string>('');
 
   // Check for token or error in URL parameters (from OAuth callback)
   useEffect(() => {
@@ -73,12 +74,18 @@ export default function HomePage() {
     setError(null);
     setSuccess(null);
     setResult(null);
+    setScrapingOutput('');
     setScrapingStatus('Initializing scraper...');
     setProgress(10);
 
     try {
       setScrapingStatus('Connecting to Wahoo API...');
       setProgress(20);
+      setScrapingOutput('🔄 Starting Wahoo data scraper...\n');
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
       const response = await fetch('/api/wahoo/scrape', {
         method: 'POST',
@@ -89,16 +96,25 @@ export default function HomePage() {
           access_token: accessToken,
           limit: 100
         }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       setProgress(60);
       setScrapingStatus('Processing data...');
+      setScrapingOutput(prev => prev + '📡 API request sent, waiting for response...\n');
 
       const data = await response.json();
 
       if (!response.ok) {
+        setScrapingOutput(prev => prev + `❌ Error: ${data.error || 'Failed to scrape data'}\n`);
         throw new Error(data.error || 'Failed to scrape data');
       }
+
+      setProgress(95);
+      setScrapingStatus('Finalizing...');
+      setScrapingOutput(prev => prev + '✅ Data received successfully!\n');
 
       setProgress(100);
       setScrapingStatus('Complete!');
@@ -107,14 +123,25 @@ export default function HomePage() {
       // Save data to localStorage for charts
       localStorage.setItem('wahooData', JSON.stringify(data));
       
-      // Clear status after 2 seconds
+      setScrapingOutput(prev => prev + `📊 Found ${data.data?.activities?.length || 0} activities\n`);
+      setScrapingOutput(prev => prev + `👤 User: ${data.data?.user?.first_name || 'Unknown'} ${data.data?.user?.last_name || ''}\n`);
+      setScrapingOutput(prev => prev + `📱 Devices: ${data.data?.devices?.length || 0}\n`);
+      setScrapingOutput(prev => prev + '🎉 Scraping completed successfully!\n');
+      
+      // Clear status after 5 seconds
       setTimeout(() => {
         setScrapingStatus('');
         setProgress(0);
-      }, 2000);
+      }, 5000);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Scraping timed out after 60 seconds. Please try again.');
+        setScrapingOutput(prev => prev + '⏰ Request timed out after 60 seconds\n');
+      } else {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        setScrapingOutput(prev => prev + `❌ Error: ${err instanceof Error ? err.message : 'Unknown error'}\n`);
+      }
       setScrapingStatus('');
       setProgress(0);
     } finally {
@@ -274,7 +301,14 @@ ${JSON.stringify(data, null, 2)}
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <p className="text-blue-700 text-sm">{scrapingStatus}</p>
+            <p className="text-blue-700 text-sm mb-3">{scrapingStatus}</p>
+            
+            {/* Scraping Output */}
+            {scrapingOutput && (
+              <div className="bg-gray-900 text-green-400 p-4 rounded-md font-mono text-sm max-h-48 overflow-y-auto">
+                <pre className="whitespace-pre-wrap">{scrapingOutput}</pre>
+              </div>
+            )}
           </div>
         )}
 
