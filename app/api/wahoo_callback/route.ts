@@ -46,50 +46,25 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    if (!process.env.WAHOO_CLIENT_ID || !process.env.WAHOO_CLIENT_SECRET || !process.env.WAHOO_REDIRECT_URI) {
-      console.error("Missing environment variables:", {
-        hasClientId: !!process.env.WAHOO_CLIENT_ID,
-        hasClientSecret: !!process.env.WAHOO_CLIENT_SECRET,
-        hasRedirectUri: !!process.env.WAHOO_REDIRECT_URI
-      });
-      
-      // Return a user-friendly error page
-      return new NextResponse(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Wahoo OAuth Callback</title>
-          <style>
-            body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; text-align: center; }
-            .error { color: #dc3545; background: #f8d7da; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .button { background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px; }
-            .button:hover { background: #0056b3; }
-          </style>
-        </head>
-        <body>
-          <h1>🔐 Wahoo OAuth Callback</h1>
-          <div class="error">
-            <h2>❌ Configuration Error</h2>
-            <p>OAuth is not properly configured on the server.</p>
-            <p>Please contact the administrator or try again later.</p>
-          </div>
-          <a href="https://imkomming.com" class="button">← Back to App</a>
-        </body>
-        </html>
-      `, {
-        status: 500,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
+    // Use environment variables or fallback to hardcoded values
+    const clientId = process.env.NEXT_PUBLIC_WAHOO_CLIENT_ID || process.env.WAHOO_CLIENT_ID || '70P1LbnCWZ30qUdUR4C0ZX8cuQBlepNZk9F7lyWbmr4';
+    const clientSecret = process.env.WAHOO_CLIENT_SECRET || 'oSlaemk7QLaPqoNV-Ap3I2GN7BrpRL0w_2ZOAkQtukU';
+    const redirectUri = process.env.WAHOO_REDIRECT_URI || 'https://www.imkomming.com/api/wahoo_callback';
+
+    console.log("Using environment variables:", {
+      hasClientId: !!process.env.NEXT_PUBLIC_WAHOO_CLIENT_ID,
+      hasClientSecret: !!process.env.WAHOO_CLIENT_SECRET,
+      hasRedirectUri: !!process.env.WAHOO_REDIRECT_URI,
+      usingClientId: clientId,
+      usingRedirectUri: redirectUri
+    });
 
     const body = new URLSearchParams({
-      client_id: process.env.WAHOO_CLIENT_ID!,
-      client_secret: process.env.WAHOO_CLIENT_SECRET!,
+      client_id: clientId,
+      client_secret: clientSecret,
       code: code,
       grant_type: "authorization_code",
-      redirect_uri: process.env.WAHOO_REDIRECT_URI!,
+      redirect_uri: redirectUri,
     });
 
     console.log("Exchanging code for token...");
