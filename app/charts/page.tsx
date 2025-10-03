@@ -3,8 +3,23 @@
 import { useState, useEffect } from 'react';
 
 export default function ChartsPage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<{
+    summary: {
+      total_activities: number;
+      total_distance_km: number;
+      total_calories: number;
+      avg_heart_rate: number;
+      activities_by_sport: Record<string, number>;
+      recent_activities: Array<{
+        name: string;
+        sport: string;
+        start_time: string;
+        distance: number;
+        duration: number;
+        calories: number;
+      }>;
+    };
+  } | null>(null);
 
   // Load data from localStorage if available
   useEffect(() => {
@@ -119,7 +134,7 @@ export default function ChartsPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Recent Activities</h2>
           <div className="space-y-4">
-            {data.summary.recent_activities.map((activity: any, index: number) => (
+            {data.summary.recent_activities.map((activity, index: number) => (
               <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">{activity.name}</h3>
@@ -153,7 +168,7 @@ export default function ChartsPage() {
                         className="bg-blue-600 h-6 rounded-full flex items-center justify-end pr-2"
                         style={{ width: `${percentage}%` }}
                       >
-                        <span className="text-white text-sm font-medium">{count}</span>
+                        <span className="text-white text-sm font-medium">{count as number}</span>
                       </div>
                     </div>
                   </div>

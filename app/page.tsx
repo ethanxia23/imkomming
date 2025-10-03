@@ -6,8 +6,50 @@ export default function HomePage() {
   const [accessToken, setAccessToken] = useState('');
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [result, setResult] = useState<{data?: any; message?: string} | null>(null);
+  const [result, setResult] = useState<{
+    data?: {
+      user?: {
+        first_name: string;
+        last_name: string;
+        email: string;
+        height: number;
+        weight: number;
+      };
+      devices?: Array<{
+        name: string;
+        type: string;
+        model: string;
+        battery_level: number;
+        last_sync: string;
+      }>;
+      activities?: Array<{
+        name: string;
+        sport: string;
+        start_time: string;
+        distance: number;
+        duration: number;
+        calories: number;
+        avg_heart_rate: number;
+      }>;
+      summary?: {
+        total_activities: number;
+        total_distance_km: number;
+        total_calories: number;
+        avg_heart_rate: number;
+        activities_by_sport: Record<string, number>;
+        recent_activities: Array<{
+          name: string;
+          sport: string;
+          start_time: string;
+          distance: number;
+          duration: number;
+          calories: number;
+        }>;
+      };
+      scraped_at: string;
+    };
+    message?: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [scrapingStatus, setScrapingStatus] = useState<string>('');
@@ -159,7 +201,8 @@ export default function HomePage() {
     return `${hours}h ${minutes}m`;
   };
 
-  const exportToJSON = (data: any) => {
+  const exportToJSON = (data: NonNullable<typeof result>['data']) => {
+    if (!data) return;
     const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
@@ -170,8 +213,8 @@ export default function HomePage() {
     URL.revokeObjectURL(url);
   };
 
-  const exportToCSV = (data: any) => {
-    if (!data.activities || data.activities.length === 0) {
+  const exportToCSV = (data: NonNullable<typeof result>['data']) => {
+    if (!data || !data.activities || data.activities.length === 0) {
       alert('No activities data to export');
       return;
     }
@@ -179,7 +222,7 @@ export default function HomePage() {
     const headers = ['Name', 'Sport', 'Date', 'Distance (km)', 'Duration (min)', 'Calories', 'Avg Heart Rate'];
     const csvContent = [
       headers.join(','),
-      ...data.activities.map((activity: any) => [
+      ...data.activities.map((activity) => [
         `"${activity.name || ''}"`,
         `"${activity.sport || ''}"`,
         `"${new Date(activity.start_time).toLocaleDateString()}"`,
@@ -199,7 +242,8 @@ export default function HomePage() {
     URL.revokeObjectURL(url);
   };
 
-  const viewRawData = (data: any) => {
+  const viewRawData = (data: NonNullable<typeof result>['data']) => {
+    if (!data) return;
     const newWindow = window.open('', '_blank');
     if (newWindow) {
       newWindow.document.write(`
@@ -399,7 +443,7 @@ ${JSON.stringify(data, null, 2)}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Activities by Sport</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(result.data.summary.activities_by_sport).map(([sport, count]) => (
+                {Object.entries(result.data.summary?.activities_by_sport || {}).map(([sport, count]) => (
                   <div key={sport} className="text-center p-4 bg-gray-50 rounded-lg">
                     <p className="text-2xl font-bold text-blue-600">{count as number}</p>
                     <p className="text-gray-600 capitalize">{sport}</p>
@@ -412,7 +456,7 @@ ${JSON.stringify(data, null, 2)}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Activities</h2>
               <div className="space-y-4">
-                {result.data.summary.recent_activities.slice(0, 5).map((activity: {name: string; sport: string; start_time: string; distance: number; duration: number; calories: number}, index: number) => (
+                {(result.data.summary?.recent_activities || []).slice(0, 5).map((activity, index: number) => (
                   <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
                     <div className="flex justify-between items-start">
                       <div>
