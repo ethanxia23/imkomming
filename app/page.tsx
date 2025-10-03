@@ -141,6 +141,62 @@ export default function HomePage() {
     return `${hours}h ${minutes}m`;
   };
 
+  const exportToJSON = (data: any) => {
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wahoo_data_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportToCSV = (data: any) => {
+    if (!data.activities || data.activities.length === 0) {
+      alert('No activities data to export');
+      return;
+    }
+
+    const headers = ['Name', 'Sport', 'Date', 'Distance (km)', 'Duration (min)', 'Calories', 'Avg Heart Rate'];
+    const csvContent = [
+      headers.join(','),
+      ...data.activities.map((activity: any) => [
+        `"${activity.name || ''}"`,
+        `"${activity.sport || ''}"`,
+        `"${new Date(activity.start_time).toLocaleDateString()}"`,
+        (activity.distance / 1000).toFixed(2),
+        Math.round(activity.duration / 60),
+        activity.calories || 0,
+        activity.avg_heart_rate || 0
+      ].join(','))
+    ].join('\n');
+
+    const dataBlob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wahoo_activities_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const viewRawData = (data: any) => {
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(`
+        <html>
+          <head><title>Raw Wahoo Data</title></head>
+          <body>
+            <pre style="white-space: pre-wrap; font-family: monospace; padding: 20px;">
+${JSON.stringify(data, null, 2)}
+            </pre>
+          </body>
+        </html>
+      `);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-4xl mx-auto">
@@ -323,8 +379,33 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="text-center text-sm text-gray-500">
-              Scraped at: {new Date(result.data.scraped_at).toLocaleString()}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">Export Data</h2>
+                <div className="text-sm text-gray-500">
+                  Scraped at: {new Date(result.data.scraped_at).toLocaleString()}
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => exportToJSON(result.data)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  📄 Export JSON
+                </button>
+                <button
+                  onClick={() => exportToCSV(result.data)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  📊 Export CSV
+                </button>
+                <button
+                  onClick={() => viewRawData(result.data)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                >
+                  🔍 View Raw Data
+                </button>
+              </div>
             </div>
           </div>
         )}
