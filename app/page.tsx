@@ -40,7 +40,7 @@ export default function HomePage() {
     setSuccess(null);
     
     // Generate OAuth URL
-    const clientId = process.env.NEXT_PUBLIC_WAHOO_CLIENT_ID;
+    const clientId = process.env.NEXT_PUBLIC_WAHOO_CLIENT_ID || '70P1LbnCWZ30qUdUR4C0ZX8cuQBlepNZk9F7lyWbmr4';
     const redirectUri = `${window.location.origin}/api/wahoo_callback`;
     
     if (!clientId) {
