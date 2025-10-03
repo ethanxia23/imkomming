@@ -6,10 +6,17 @@
       "use": "@vercel/next"
     }
   ],
-  "routes": [
+  "redirects": [
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.imkomming.com"
+        }
+      ],
+      "destination": "https://imkomming.com/$1",
+      "permanent": false
     }
   ]
 }
