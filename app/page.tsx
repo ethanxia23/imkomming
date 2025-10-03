@@ -41,7 +41,8 @@ export default function HomePage() {
     
     // Generate OAuth URL
     const clientId = process.env.NEXT_PUBLIC_WAHOO_CLIENT_ID || '70P1LbnCWZ30qUdUR4C0ZX8cuQBlepNZk9F7lyWbmr4';
-    const redirectUri = `${window.location.origin}/api/wahoo_callback`;
+    // Always use production redirect URI since Wahoo app is configured for it
+    const redirectUri = 'https://imkomming.com/api/wahoo_callback';
     
     if (!clientId) {
       setError('OAuth not configured. Please set NEXT_PUBLIC_WAHOO_CLIENT_ID in your environment variables or enter your access token manually.');
